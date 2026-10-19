@@ -1,2 +1,2 @@
 # Smart-boy
-Test
+game
