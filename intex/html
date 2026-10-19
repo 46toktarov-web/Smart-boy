@@ -1,0 +1,137 @@
+<!DOCTYPE html><html lang="kk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Ақылды бала</title>
+<style>
+:root{--bg:#f3fbff;--card:#fff;--ink:#23395b;--blue:#4dabf7;--yel:#ffd43b;--grn:#69db7c;--pnk:#ff8fab;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito","Trebuchet MS",system-ui,sans-serif;text-align:center}
+header{background:var(--blue);color:#fff;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+header h1{margin:0;font-size:clamp(22px,5vw,34px)}.stars{background:var(--yel);color:var(--ink);padding:8px 14px;border-radius:30px;font-weight:800;font-size:20px}
+main{max-width:980px;margin:auto;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{background:var(--card);border-radius:22px;padding:14px;box-shadow:0 4px 0 rgba(0,0,0,.12);border:4px solid var(--c,#4dabf7)}
+.card .ic{font-size:52px}.card b{display:block;font-size:18px;margin:6px 0 10px;min-height:44px}
+button{font:inherit;font-weight:800;border:0;border-radius:18px;padding:14px 20px;font-size:22px;background:var(--grn);color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);min-height:56px}
+button:active{transform:translateY(3px);box-shadow:none}.back{background:var(--yel);margin:6px}
+.big{font-size:clamp(60px,16vw,110px);line-height:1.1;margin:10px 0;word-break:break-word}
+.q{font-size:clamp(22px,5vw,32px);font-weight:800;margin:8px}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:14px 0}.opts button{background:#fff;border:4px solid var(--blue);font-size:clamp(28px,7vw,44px);min-width:92px}
+.msg{font-size:24px;font-weight:800;min-height:36px}.ok{color:#2b9348}.no{color:#e8590c}
+.city{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:4px;background:#d8f5a2;border-radius:18px;padding:10px;margin:10px 0;font-size:38px;min-height:70px}
+.lt{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}.lt button{background:#fff;border:4px solid var(--pnk)}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px}
+.pop{position:fixed;inset:0;pointer-events:none;font-size:60px;display:flex;align-items:center;justify-content:center;animation:p .9s ease-out forwards}@keyframes p{from{transform:scale(.3);opacity:1}to{transform:scale(2);opacity:0}}
+.ctl{background:#fff;border-radius:18px;padding:12px;margin:10px 0;font-size:20px}
+</style></head><body>
+<header><h1 id="ttl">🧠 Ақылды бала</h1><button class="back" id="lg" onclick="setLang()" style="margin:0;padding:8px 14px;font-size:18px;min-height:44px">🌐 РУС</button><div class="stars">⭐ <span id="st">0</span></div></header>
+<div id="vn" style="display:none;background:#fff3bf;color:#23395b;padding:8px;font-weight:700"></div>
+<main id="app"></main>
+<script id="audiomap" type="application/json">{}</script>
+<script>
+var S={lang:"kk",rec:{},stars:0,played:{},sound:true,diff:1,limit:0,city:[],today:{d:"",m:0}};
+try{var x=JSON.parse(localStorage.getItem("ab")||"null");if(x)Object.assign(S,x)}catch(e){}
+function save(){try{localStorage.setItem("ab",JSON.stringify(S))}catch(e){}}
+var AUD={};try{AUD=JSON.parse(document.getElementById("audiomap").textContent)||{}}catch(e){}
+var $=function(i){return document.getElementById(i)},R=function(a,b){return a+Math.floor(Math.random()*(b-a+1))};
+var sh=function(a){return a.slice().sort(function(){return Math.random()-.5})},pick=function(a){return a[R(0,a.length-1)]};
+var AC;function beep(f,d){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.15;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function kkVoice(){var v=window.speechSynthesis?speechSynthesis.getVoices():[],k=v.filter(function(a){return/^kk/i.test(a.lang)});return k.find(function(a){return/aigul|айгүл|female/i.test(a.name)})||k[0]||null}
+function chk(){var n=$("vn");if(!n||!window.speechSynthesis)return;var ok=!!kkVoice()||Object.keys(AUD).length>20;n.style.display=ok||!S.sound||S.lang==="ru"?"none":"block";n.textContent="🔈 Бұл құрылғыда қазақша дауыс табылмады. Edge браузерінде «Aigul» қыз дауысы бар."}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=chk;setTimeout(chk,600)}
+function nk(s){return String(s).toLowerCase().replace(/[.!?,]/g,"").trim()}
+function playSeq(a,i){if(i>=a.length)return;var x=new Audio(a[i]);x.onended=function(){playSeq(a,i+1)};x.play().catch(function(){})}
+function say(t){if(!S.sound)return;var p=Array.isArray(t)?t:[t],d=p.map(function(s){return AUD[nk(s)]});if(S.lang!=="ru"&&d.every(Boolean)){if(window.speechSynthesis)speechSynthesis.cancel();playSeq(d,0);return}t=p.join(". ");if(!window.speechSynthesis)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t),v=speechSynthesis.getVoices(),ru=v.filter(function(a){return/^ru/i.test(a.lang)}),k=S.lang==="ru"?null:kkVoice();if(S.lang==="ru"){var f=ru.find(function(a){return/milena|irina|svetlana|alena|katya|anna|tatyana|female|google/i.test(a.name)})||ru[0];u.text=tr(t);if(f){u.voice=f;u.lang=f.lang}else u.lang="ru-RU";u.rate=.85;u.pitch=1.7}else{if(k){u.voice=k;u.lang=k.lang}else{var r=ru[0];if(r){u.voice=r;u.lang=r.lang}else u.lang="kk-KZ"}u.rate=.8;u.pitch=1.15}speechSynthesis.speak(u)}catch(e){}}
+function pop(e){var d=document.createElement("div");d.className="pop";d.textContent=e;document.body.appendChild(d);setTimeout(function(){d.remove()},900)}
+function ui(){$("st").textContent=S.stars}
+var tk=setInterval(function(){var t=new Date().toISOString().slice(0,10);if(S.today.d!==t)S.today={d:t,m:0};S.today.m+=1/6;save();if(S.limit&&S.today.m>=S.limit){go("lock")}},10000);
+var E=["🍎","🎈","🐶","🐟","⭐","🚗","🌳","🐱","🍓"];
+var SEC=[["count","🔢","Математикалық ойындар","#4dabf7"],["calc","➕","Жеңіл есептер","#69db7c"],["cmp","⚖️","Салыстыру ойындары","#ffd43b"],["match","🧩","Сәйкестендіру","#ff8fab"],["shape","🔷","Пішіндер мен рет","#4dabf7"],["city","🏙️","Қала тұрғызу: логика","#69db7c"],["abc","🔤","Әліппені тану","#ffd43b"],["syl","🗣️","Дыбыстар мен буындар","#ff8fab"],["words","📖","Сөздерді бірге оқиық","#4dabf7"],["build","🔠","Сөз құрастыру","#69db7c"],["mult","✖️","Көбейту кестесі (6+ жас)","#ffd43b"],["parent","👨‍👩‍👧","Ата-ана бөлімі","#ff8fab"]];
+var LET=[["А","алма","🍎"],["Б","бала","👦"],["К","кітап","📕"],["И","ит","🐶"],["Ү","үй","🏠"],["М","мысық","🐱"],["Н","нан","🍞"],["С","су","💧"],["Ш","шай","🍵"],["Ө","өрік","🍑"],["Қ","қалам","✏️"],["Ә","әже","👵"],["Т","тау","⛰️"],["Ж","жұлдыз","⭐"],["Ғ","ғарыш","🚀"],["Д","дәптер","📓"],["Ұ","ұшақ","✈️"],["Ң","","" ]].filter(function(l){return l[1]});
+var WORDS=[["ата","👴"],["ана","👩"],["апа","👧"],["аға","👨"],["бала","👦"],["ит","🐶"],["мысық","🐱"],["ат","🐴"],["сиыр","🐄"],["үй","🏠"],["мектеп","🏫"],["алма","🍎"],["нан","🍞"],["су","💧"],["шай","🍵"],["кітап","📕"],["қалам","✏️"],["дәптер","📓"]];
+var SENT=["Ана баланы құшады.","Бала алма жейді.","Ит үйде тұрады.","Мен кітап оқимын.","Ата мен ана мені жақсы көреді."];
+var BUILD=["Ү","Й","И","Т","А","Н","А","Л","М","А","К","І","Т","А","П"];
+function mx(){return[5,10,20][S.diff-1]}
+function opts3(a,lo,hi){var s=[a];while(s.length<3){var n=R(Math.max(lo,a-3),Math.min(hi+3,a+3));if(s.indexOf(n)<0&&n>=0)s.push(n)}return sh(s)}
+var CMP=[["Қай ағаш биік?","🌳","🌱"],["Қай себетте алма көп?","🍎🍎🍎🍎","🍎"],["Қай қарындаш ұзын?","📏","✏️"],["Қайсысы үлкен?","🐘","🐭"],["Қайсысы ауыр?","🪨","🪶"],["Қайсысы жоғары?","🚀","🐛"],["Қайсысында аз?","🍓","🍓🍓🍓🍓"]];
+var MAT=[["Мияулайтын кім?","🐱",["🐶","🐮"]],["Үргіш кім?","🐶",["🐱","🐑"]],["Моңыраған кім?","🐮",["🐱","🐔"]],["Дәрігерге не керек?","🩺",["🍳","🚒"]],["Аспазға не керек?","🍳",["🩺","📚"]],["Жасыл түс қайсы?","🌳",["🍓","🌊"]],["Қызыл түс қайсы?","🍎",["🍋","🌳"]],["Сары түс қайсы?","🍋",["🍎","🫐"]],["3 алма қайсы?","🍎🍎🍎",["🍎","🍎🍎"]],["Дөңгелектің көлеңкесі?","⚫",["⬛","🔺"]]];
+var GEN={
+count:[function(){var m=mx(),n=R(1,m),e=pick(E);return{q:"Неше "+e+" бар?",big:new Array(n+1).join(e),o:opts3(n,1,m),a:n}},
+function(){var m=mx(),a=R(1,m-3);return{q:"Жоғалған санды тап",big:a+", "+(a+1)+", __, "+(a+3),o:opts3(a+2,1,m),a:a+2}},
+function(){var m=mx(),o=opts3(R(2,m),1,m);return{q:"Ең кішкентай санды тап",big:"",o:o,a:Math.min.apply(null,o)}}],
+calc:[function(){var m=Math.min(mx(),10),a=R(1,m-1),b=R(1,m-a),e=pick(E);return{q:a+" + "+b+" = ?",big:new Array(a+1).join(e)+" ➕ "+new Array(b+1).join(e),o:opts3(a+b,0,m),a:a+b}},
+function(){var m=Math.min(mx(),10),a=R(2,m),b=R(1,a-1),e=pick(E);return{q:a+" "+e+" болды, "+b+" кетті. Неше қалды?",big:new Array(a+1).join(e)+" ➖ "+new Array(b+1).join("❌"),o:opts3(a-b,0,m),a:a-b}}],
+cmp:[function(){var c=pick(CMP);return{q:c[0],big:"",o:sh([c[1],c[2]]),a:c[1],t:1}}],
+match:[function(){var c=pick(MAT);return{q:c[0],big:"",o:sh([c[1]].concat(c[2])),a:c[1],t:1}}],
+shape:[function(){var a=pick(["🔴","🟦","🔺","⭐"]),b=pick(["🟡","🟩","⬛","🌙"]);return{q:"Не келеді?",big:a+b+a+b+a+" ❓",o:sh([b,a,"🟪"]),a:b,t:1}},
+function(){var s=[["Қайсысы дөңгелек?","⚪",["⬜","🔺"]],["Қайсысы шаршы?","⬜",["⚪","🔺"]],["Қайсысы үшбұрыш?","🔺",["⚪","⬜"]]],c=pick(s);return{q:c[0],big:"",o:sh([c[1]].concat(c[2])),a:c[1],t:1}}],
+mult:[function(){var a=pick([2,5,10]),b=R(1,10);return{q:a+" × "+b+" = ?",big:"",o:opts3(a*b,0,100),a:a*b}}],
+syl:[function(){var w=pick(LET),o=sh([w[0]].concat(sh(LET.filter(function(l){return l[0]!=w[0]})).slice(0,2).map(function(l){return l[0]})));return{q:"Қай дыбыстан басталады?",big:w[2]+" "+w[1],o:o,a:w[0],say:w[1],t:1}}],
+abc:[function(){var w=pick(LET),o=sh([w[0]].concat(sh(LET.filter(function(l){return l[0]!=w[0]})).slice(0,2).map(function(l){return l[0]})));return{q:w[0]+" әрпін тап",big:w[2],o:o,a:w[0],say:w[0],t:1}}]};
+GEN.city=[].concat(GEN.count,GEN.calc,GEN.cmp,GEN.match,GEN.shape);
+var BLD=["🏠","🌳","🛣️","🌉","🏫","🎡","🚗","🏠","🌳","🏢"];
+var cur,qi,sc;
+function home(){var h='<p class="q">Ойын таңда!</p><div class="grid">';SEC.forEach(function(s){h+='<div class="card" style="--c:'+s[3]+'"><div class="ic">'+s[1]+'</div><b>'+s[2]+'</b><button onclick="go(\''+s[0]+'\')">▶ Ойна</button></div>'});$("app").innerHTML=h+"</div>";}
+function go(k){
+if(k==="lock"){$("app").innerHTML='<div class="big">😴</div><p class="q">Бүгінгі ойын уақыты бітті. Ертең кездескенше!</p><button class="back" onclick="S.today.m=0;S.limit=0;save();go(\'home\')">Ата-ана үшін</button>';return}
+if(S.limit&&S.today.m>=S.limit&&k!=="parent"&&k!=="home"){return go("lock")}
+S.played[k]=(S.played[k]||0)+1;save();
+if(k==="home")return home();
+if(k==="parent")return parentPage();
+if(k==="studio")return studio();
+if(k==="words")return wordsPage();
+if(k==="build")return build();
+cur=k;qi=0;sc=0;
+if(k==="abc"){abcPage();return}
+if(k==="syl"){sylPage();return}
+quiz()}
+function hdr(t){return '<button class="back" onclick="go(\'home\')">🏠 Үйге</button><div class="q">'+t+'</div>'}
+function title(k){return SEC.filter(function(s){return s[0]===k})[0][2]}
+function quiz(){
+if(qi>=5){$("app").innerHTML=hdr(title(cur))+'<div class="big">🏆</div><p class="q">Жарайсың! '+sc+' / 5 ⭐</p><div class="row"><button onclick="go(\''+cur+'\')">🔁 Тағы ойна</button></div>'+(cur==="city"?cityHtml():"");return}
+var q,g=0,rc=S.rec[cur]=S.rec[cur]||[];do{q=pick(GEN[cur])();g++}while(rc.indexOf(q.q+q.big)>=0&&g<25);rc.push(q.q+q.big);if(rc.length>5)rc.shift();save();var h=hdr(title(cur))+(cur==="city"?cityHtml():"")+'<div class="q">'+q.q+'</div><div class="big">'+q.big+'</div><div class="opts">';
+q.o.forEach(function(o){h+='<button data-v="'+o+'">'+o+'</button>'});
+$("app").innerHTML=h+'</div><div class="msg" id="m"></div>';
+say(q.say||q.q);
+Array.prototype.forEach.call(document.querySelectorAll(".opts button"),function(b){b.onclick=function(){
+if(b.dataset.v==String(q.a)){beep(880,.25);pop("⭐");S.stars++;sc++;if(cur==="city"){S.city.push(pick(BLD))}save();ui();$("m").className="msg ok";$("m").textContent="Жарайсың!";say("Жарайсың!");setTimeout(function(){qi++;quiz()},900)}
+else{beep(260,.3);$("m").className="msg no";$("m").textContent="Ештеңе етпейді, тағы бір рет көрейік!";b.style.opacity=.3;say("Ештеңе етпейді, тағы бір рет көрейік!")}}})}
+function cityHtml(){return '<div class="city">'+(S.city.length?S.city.join(""):"🌱 Қалаң осында өседі")+'</div>'}
+function abcPage(){var h=hdr("Әліппе: әріпті бас")+'<div class="big" id="lb">🔤</div><div class="lt">';LET.forEach(function(l,i){h+='<button onclick="showL('+i+')">'+l[0]+' '+l[0].toLowerCase()+'</button>'});
+$("app").innerHTML=h+'</div><div class="row"><button onclick="quiz()">🎮 «Әріпті тап» ойыны</button></div>'}
+function showL(i){var l=LET[i];$("lb").innerHTML=l[0]+l[0].toLowerCase()+" — "+l[1]+" "+l[2];say([l[0],l[1]])}
+function sylPage(){var s=[["м","ма ме ми"],["п","па пе пи"],["т","та те ти"],["қ","қа қо қы"]],h=hdr("Буындар");s.forEach(function(x){h+='<div class="row">';x[1].split(" ").forEach(function(b){h+='<button style="font-size:34px" onclick="say(\''+b+'\')">'+b+'</button>'});h+='</div>'});
+$("app").innerHTML=h+'<div class="q">ма + ма = мама 👩</div><div class="row"><button onclick="say(\'мама\')">🔊 мама</button><button onclick="quiz()">🎮 Қай дыбыс?</button></div>'}
+function wordsPage(){var h=hdr("Сөздерді бірге оқиық")+'<div class="big" id="wb">📖</div><div class="grid">';WORDS.forEach(function(w,i){h+='<button onclick="showW('+i+')">'+w[1]+' '+w[0]+'</button>'});
+h+='</div><p class="q">Сөйлемдер</p>';SENT.forEach(function(s){h+='<div class="row"><button style="font-size:20px;background:#fff;border:3px solid var(--blue)" onclick="say(this.textContent)">'+s+'</button></div>'});$("app").innerHTML=h}
+function showW(i){var w=WORDS[i];$("wb").innerHTML=w[1]+"<br>"+w[0].toUpperCase().split("").join(" · ");say(w[0]);S.stars+=0;save()}
+var bw,bp;
+function build(){var lw=bw;do{bw=pick(WORDS)}while(bw===lw&&WORDS.length>1);bp="";var L=sh(bw[0].toUpperCase().split(""));
+var h=hdr("Сөзді құрастыр")+'<div class="big">'+bw[1]+'</div><div class="big" id="bt" style="min-height:90px">_</div><div class="opts">';
+L.forEach(function(l,i){h+='<button id="L'+i+'" onclick="bl(\''+l+'\','+i+')">'+l+'</button>'});
+$("app").innerHTML=h+'</div><div class="msg" id="m"></div><div class="row"><button onclick="build()">🔁 Басқа сөз</button></div>'}
+function bl(l,i){bp+=l;$("L"+i).style.visibility="hidden";$("bt").textContent=bp;beep(600,.1);var t=bw[0].toUpperCase();
+if(bp.length===t.length){if(bp===t){say(bw[0]);pop("⭐");S.stars++;save();ui();$("m").className="msg ok";$("m").textContent="Жарайсың!";setTimeout(build,1600)}else{$("m").className="msg no";$("m").textContent="Ештеңе етпейді, тағы бір рет көрейік!";setTimeout(build,1400)}}}
+function parentPage(){var h=hdr("Ата-ана бөлімі")+'<div class="ctl">⭐ Жұлдыздар: <b>'+S.stars+'</b> · 🏙️ Қала: <b>'+S.city.length+'</b> нысан</div><div class="ctl"><b>Ойнаған ойындар:</b><br>';
+SEC.forEach(function(s){if(S.played[s[0]])h+=s[1]+" "+s[2]+": "+S.played[s[0]]+"<br>"});if(!Object.keys(S.played).length)h+="Әзірге жоқ";
+h+='</div><div class="ctl">Дыбыс: <button onclick="S.sound=!S.sound;save();parentPage()">'+(S.sound?"🔊 Қосулы":"🔇 Өшірулі")+'</button></div><div class="ctl">Деңгей: ';
+["Оңай","Орташа","Қиын"].forEach(function(n,i){h+='<button style="'+(S.diff==i+1?"background:var(--yel)":"")+'" onclick="S.diff='+(i+1)+';save();parentPage()">'+n+'</button> '});
+h+='</div><div class="ctl">Күнделікті уақыт (минут): ';[0,10,20,30].forEach(function(m){h+='<button style="'+(S.limit==m?"background:var(--yel)":"")+'" onclick="S.limit='+m+';save();parentPage()">'+(m||"Шектеусіз")+'</button> '});
+$("app").innerHTML=h+'</div><div class="row"><button onclick="go(\'studio\')">🎙️ Дыбыс студиясы</button></div>'}
+function KEYS(){var u=function(a){return a.filter(function(x,i){return a.indexOf(x)===i})},l=LET.map(function(x){return x[0].toLowerCase()}),w=LET.map(function(x){return x[1]}).concat(WORDS.map(function(x){return x[0]}));return[["Мақтау",["жарайсың","ештеңе етпейді тағы бір рет көрейік"]],["Әріптер",u(l)],["Сөздер",u(w)],["Буындар","ма ме ми па пе пи та те ти қа қо қы мама".split(" ")],["Сөйлемдер",SENT.map(nk)]]}
+function studio(){var h=hdr("🎙️ Дыбыс студиясы")+'<div class="ctl">Аудио файлдарды сөздің атымен атаңыз: <b>ана.mp3</b>, <b>ү.mp3</b>. Әр файл 300 КБ-тан аз болсын. Бірден көп файл таңдауға болады.<br><br><input type="file" id="bulk" accept="audio/*" multiple></div><div class="msg" id="sv"></div><div class="row"><button onclick="saveAudio()">💾 Сақтау</button></div>';
+KEYS().forEach(function(g){h+='<div class="ctl"><b>'+g[0]+'</b><br>';g[1].forEach(function(k){h+='<span style="display:inline-block;margin:4px;padding:4px 10px;border-radius:12px;background:'+(AUD[k]?"#d3f9d8":"#fff3bf")+'">'+(AUD[k]?"✅ ":"")+k+(AUD[k]?' <a href="#" onclick="say(\''+k+'\');return false">▶</a>':"")+'</span>'});h+='</div>'});
+$("app").innerHTML=h;$("bulk").onchange=function(e){var all={};KEYS().forEach(function(g){g[1].forEach(function(k){all[k]=1})});var ok=Array.prototype.slice.call(e.target.files).filter(function(f){return all[nk(f.name.replace(/\.[^.]+$/,"").replace(/[_-]/g," "))]&&f.size<300000});if(!ok.length){$("sv").textContent="Сәйкес файл табылмады";return}var n=ok.length;ok.forEach(function(f){var k=nk(f.name.replace(/\.[^.]+$/,"").replace(/[_-]/g," ")),r=new FileReader();r.onload=function(){AUD[k]=r.result;if(--n===0)studio()};r.readAsDataURL(f)})}}
+async function saveAudio(){var m=$("sv");try{var a=window.claude&&await claude.use("artifact");if(!a){m.textContent="Тек сайт иесі сақтай алады";return}var c=document.documentElement.cloneNode(true);c.querySelector("#app").innerHTML="";c.querySelector("#st").textContent="0";var v=c.querySelector("#vn");v.style.display="none";v.textContent="";c.querySelector("#audiomap").textContent=JSON.stringify(AUD);m.textContent="Сақталуда...";await a.publish("<!DOCTYPE html>\n"+c.outerHTML)}catch(e){m.textContent="Қате: "+(e.message||e.code||e)}}
+var LETK=LET,WORDSK=WORDS,SENTK=SENT,CMPK=CMP,MATK=MAT;
+var LETR=[["А","арбуз","🍉"],["Б","бабочка","🦋"],["В","волк","🐺"],["Г","гриб","🍄"],["Д","дом","🏠"],["К","кот","🐱"],["М","мяч","⚽"],["Н","нос","👃"],["О","облако","☁️"],["П","поезд","🚂"],["С","слон","🐘"],["Т","торт","🍰"],["Ш","шар","🎈"],["Я","яблоко","🍎"],["Л","лиса","🦊"],["Р","рыба","🐟"],["Ж","жук","🐞"],["З","заяц","🐰"]];
+var WORDSR=[["мама","👩"],["папа","👨"],["баба","👵"],["дед","👴"],["кот","🐱"],["дом","🏠"],["мяч","⚽"],["рыба","🐟"],["слон","🐘"],["арбуз","🍉"],["яблоко","🍎"],["хлеб","🍞"],["вода","💧"],["чай","🍵"],["книга","📕"],["ручка","🖊️"],["школа","🏫"],["собака","🐶"]];
+var SENTR=["Мама обнимает малыша.","Малыш ест яблоко.","Собака живёт в доме.","Я читаю книгу.","Папа и мама любят меня."];
+var CMPR=[["Какое дерево выше?","🌳","🌱"],["В какой корзине больше яблок?","🍎🍎🍎🍎","🍎"],["Какой карандаш длиннее?","📏","✏️"],["Кто больше?","🐘","🐭"],["Что тяжелее?","🪨","🪶"],["Что выше?","🚀","🐛"],["Где меньше?","🍓","🍓🍓🍓🍓"]];
+var MATR=[["Кто мяукает?","🐱",["🐶","🐮"]],["Кто лает?","🐶",["🐱","🐑"]],["Кто мычит?","🐮",["🐱","🐔"]],["Что нужно врачу?","🩺",["🍳","🚒"]],["Что нужно повару?","🍳",["🩺","📚"]],["Где зелёный цвет?","🌳",["🍓","🌊"]],["Где красный цвет?","🍎",["🍋","🌳"]],["Где жёлтый цвет?","🍋",["🍎","🫐"]],["Где 3 яблока?","🍎🍎🍎",["🍎","🍎🍎"]],["Тень круга?","⚫",["⬛","🔺"]]];
+var D={"Ойын таңда!":"Выбирай игру!","Математикалық ойындар":"Математические игры","Жеңіл есептер":"Лёгкие задачи","Салыстыру ойындары":"Игры на сравнение","Сәйкестендіру":"Найди пару","Пішіндер мен рет":"Фигуры и порядок","Қала тұрғызу: логика":"Строим город: логика","Әліппені тану":"Учим алфавит","Дыбыстар мен буындар":"Звуки и слоги","Сөздерді бірге оқиық":"Читаем слова вместе","Сөз құрастыру":"Составь слово","Көбейту кестесі (6+ жас)":"Таблица умножения (6+)","Ата-ана бөлімі":"Для родителей","Ойна":"Играть","Үйге":"Домой","Тағы ойна":"Играть ещё","Басқа сөз":"Другое слово","Жоғалған санды тап":"Найди пропущенное число","Ең кішкентай санды тап":"Найди самое маленькое число","Не келеді?":"Что дальше?","Қайсысы дөңгелек?":"Где круг?","Қайсысы шаршы?":"Где квадрат?","Қайсысы үшбұрыш?":"Где треугольник?","Жарайсың!":"Молодец!","Ештеңе етпейді, тағы бір рет көрейік!":"Ничего страшного, попробуем ещё раз!","Қай дыбыстан басталады?":"С какого звука начинается слово?","Әліппе: әріпті бас":"Алфавит: нажми на букву","«Әріпті тап» ойыны":"Игра «Найди букву»","Буындар":"Слоги","Қай дыбыс?":"Какой звук?","Сөйлемдер":"Предложения","Сөзді құрастыр":"Составь слово","Қалаң осында өседі":"Твой город будет расти здесь","Бүгінгі ойын уақыты бітті. Ертең кездескенше!":"Время игр на сегодня закончилось. До завтра!","Ата-ана үшін":"Для родителей","Жұлдыздар:":"Звёзды:","Қала:":"Город:","нысан":"объектов","Ойнаған ойындар:":"Сыгранные игры:","Әзірге жоқ":"Пока нет","Дыбыс:":"Звук:","Қосулы":"Включён","Өшірулі":"Выключен","Деңгей:":"Уровень:","Оңай":"Лёгкий","Орташа":"Средний","Қиын":"Сложный","Күнделікті уақыт (минут):":"Время в день (минуты):","Шектеусіз":"Без ограничений","Дыбыс студиясы":"Студия звука","ме":"мо","ми":"му","пе":"по","пи":"пу","те":"то","ти":"ту","қа":"ка","қо":"ко","қы":"ку"};
+var RX=[[/^Неше (.+) бар\?$/,"Сколько $1?"],[/^(\d+) (\S+) болды, (\d+) кетті\. Неше қалды\?$/,"Было $1 $2, улетело $3. Сколько осталось?"],[/^(\S+) әрпін тап$/,"Найди букву $1"],[/^Жарайсың! (.+)$/,"Молодец! $1"]];
+function tr(s){if(S.lang!=="ru")return s;var z=s.trim();if(!z)return s;var i;if(D[z])return s.replace(z,D[z]);for(i=0;i<RX.length;i++)if(RX[i][0].test(z))return s.replace(z,z.replace(RX[i][0],RX[i][1]));var m=s.match(/^(\s*[^A-Za-zА-Яа-яЁёӘәҒғҚқҢңӨөҰұҮүҺһІі]*)([\s\S]*?)(\s*)$/),p=m[1],b=m[2],e=m[3];if(D[b])return p+D[b]+e;var j=b.lastIndexOf(": ");if(j>0&&D[b.slice(0,j)])return p+D[b.slice(0,j)]+": "+b.slice(j+2)+e;if(D[b.replace(/:$/,"")+":"])return p+D[b.replace(/:$/,"")+":"]+e;return s}
+function trNode(n){if(n.nodeType===3){var v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}else if(n.nodeType===1&&n.tagName!=="SCRIPT"&&n.tagName!=="STYLE")for(var c=n.firstChild;c;c=c.nextSibling)trNode(c)}
+new MutationObserver(function(ms){if(S.lang!=="ru")return;ms.forEach(function(m){if(m.type==="characterData")trNode(m.target);else m.addedNodes.forEach(trNode)})}).observe(document.body,{childList:true,subtree:true,characterData:true});
+function applyLang(){var r=S.lang==="ru";LET=r?LETR:LETK;WORDS=r?WORDSR:WORDSK;SENT=r?SENTR:SENTK;CMP=r?CMPR:CMPK;MAT=r?MATR:MATK;$("ttl").textContent=r?"🧠 Умный малыш":"🧠 Ақылды бала";$("lg").textContent=r?"🌐 ҚАЗ":"🌐 РУС";document.title=r?"Умный малыш":"Ақылды бала";document.documentElement.lang=r?"ru":"kk"}
+function setLang(){S.lang=S.lang==="ru"?"kk":"ru";save();applyLang();chk();go("home")}
+applyLang();
+ui();home();
+</script></body></html>
